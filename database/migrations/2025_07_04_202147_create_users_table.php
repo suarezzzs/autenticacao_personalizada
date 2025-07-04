@@ -15,12 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string("username", 30)->unique();
             $table->string("email", 50)->unique();
-            $table->string("password", 32);
+            $table->string("password");
             $table->string("token", 100)->nullable();
-            $table->dateTime("email_verified_at")->nullable()->defalt(null);
-            $table->dateTime("last_login_at")->nullable()->defalt(null);
-            $table->boolean("active")->nullable()->defalt(null);
-            $table->dateTime("blocked_until")->nullable()->defalt(null);
+            $table->dateTime("email_verified_at")->nullable()->default(null);
+            $table->dateTime("last_login_at")->nullable()->default(null);
+            $table->boolean("active")->nullable()->default(null);
+            $table->dateTime("blocked_until")->nullable()->default(null);
             $table->timestamps();
             $table->softDeletes();
         });

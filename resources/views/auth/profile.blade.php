@@ -4,8 +4,9 @@
         <div class="row justify-content-center">
             <div class="col-6">
                     <p class="display-6">DEFINIR NOVA SENHA</p>
-                    @csrf
+
                     <form action="{{ route("change_password") }}" method="post">
+                         @csrf
 
                         <div class="mb-3">
                             <label for="current_password" class="form-label">A sua senha atual</label>
@@ -41,6 +42,12 @@
                     @if(session("server_error"))
                         <div class="alert alert-danger text-center mt-3">
                             {{ session("server_error") }}
+                        </div>
+                    @endif
+
+                    @if(session("succes"))
+                        <div class="alert alert-success text-center mt-3">
+                            {{ session("succes") }}
                         </div>
                     @endif
 

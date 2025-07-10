@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\NewUserConfirmation;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\RedirectResponse;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+// A importação do Carbon não é mais estritamente necessária se usarmos o helper now()
+// mas é bom manter para outras possíveis utilizações.
+use Illuminate\Support\Facades\Carbon;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
@@ -20,7 +25,6 @@ class AuthController extends Controller
     public function authenticate(Request $request): RedirectResponse
     {
         // form validation
-
         $credentials = $request->validate(
             [
                 "username" => "required|min:3|max:30",
@@ -36,13 +40,6 @@ class AuthController extends Controller
                 "password.regex" => "A senha deve conter letras maiusculas, minusculas e numeros"
             ]
         );
-
-        // // login tradicional do Laravel
-        // if(Auth::attempt($credentials)){
-        //     $request->session()->regenerate();
-        //     redirect()->route("home");
-        // }; // só usar se tem eial e password
-
 
         // verificar se o user existe
         $user = User::where("username", $credentials["username"])
@@ -69,15 +66,12 @@ class AuthController extends Controller
             ]);
         }
 
-
         // atualizar o ultimo login (las_login)
-
         $user->last_login_at = now();
         $user->blocked_until = null;
         $user->save();
 
         // login propriamente dito!
-
         $request->session()->regenerate();
         Auth::login($user);
 
@@ -90,7 +84,6 @@ class AuthController extends Controller
         // logout
         Auth::logout();
         return redirect()->route("login");
-
     }
 
     public function register(): view
@@ -98,7 +91,7 @@ class AuthController extends Controller
         return view("auth.register");
     }
 
-    public function store_user(Request $request): void
+    public function store_user(Request $request): RedirectResponse|View
     {
         // form validation
         $request->validate(
@@ -113,18 +106,56 @@ class AuthController extends Controller
                 "password.max" => "A senha deve ter no máximo :max caracteres",
                 "password.confirmed" => "A confirmação da senha não corresponde.",
                 "password.regex" => "A senha deve conter letras maiúsculas, minúsculas e números"
-        ]
+            ]
         );
 
         // VAMOS CRIAR UM NOVO USUÁRIO DEFINIDO UM TOKEN DE VERIFICAÇÃO DE EMAIL
-
         $user = new User();
         $user->username = $request->input("username");
         $user->email = $request->input("email");
         $user->password = Hash::make($request->input("password"));
-        $user->toke = Str::random(64); // cria um toke com 64 strings
-        dd($user);
+        $user->token = Str::random(64); // cria um toke com 64 strings
 
+        // gerar link
+        $confirmation_link = route("new_user_confirmation", ["token" => $user->token]);
 
+        // enviar email
+        Mail::to($user->email)->send(new NewUserConfirmation($user->username, $confirmation_link));
+
+        // criar o user na base de dados
+        $user->save();
+
+        // apresentar view de sucesso
+        return view("auth.mail_sent", ["email" => $user->email]);
+    }
+
+    public function new_user_confirmation($token)
+    {
+        // verificar se o token e valido
+        $user = User::where("token", $token)->first();
+        if(!$user){
+            return redirect()->route("login");
+        }
+
+        // confirmar o registro do usuário
+        $user->email_verified_at = now(); // CORREÇÃO 1: Usando o helper now()
+        $user->token = null;
+        $user->active = true; // CORREÇÃO 2: Corrigido de 'action' para 'active'
+        $user->save();
+
+        //autenticação automatica (login) do usuário confirmado
+        Auth::login($user);
+
+        // apresenta uma mensagem de sucesso
+        return view("auth.new_user_confirmation");
+    }
+
+    public function profile(): view
+    {
+        return view("auth.profile");
+    }
+    public function change_password(Request $request)
+    {
+        echo "change_password";
     }
 }

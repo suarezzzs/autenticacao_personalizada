@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\MainController;
+
 
 
 //
@@ -15,15 +17,22 @@ Route::middleware("guest")->group(function(){
     Route::get("/register", [AuthController::class , "register"])->name("register");
     Route::post("/register", [AuthController::class , "store_user"])->name("store_user");
 
+    // New user confirmation
+    Route::get("/new_user_confirmation/{token}", [AuthController:: class, "new_user_confirmation"])->name("new_user_confirmation");
 });
 
-// Mesmo que tento entrar na pagina inicial ele vai me direcionar ao login
-Route::middleware("auth")->group(function(){
-    Route::get("/", function(){
-        echo "ola mundo";
-    })->name("home");
+// Rota pública que NÃO exige login
+Route::get("/", [MainController::class, "home"])->name("home");
 
-    Route::get("/logout", [AuthController::class , "logout"])->name("logout");
+// Rotas que EXIGEM login
+Route::middleware("auth")->group(function () {
+    Route::get("/logout", [AuthController::class, "logout"])->name("logout");
+
+    // Profile
+    Route::get("/profile", [AuthController::class, "profile"])->name("profile");
+
+    // Rota para ALTERAR a senha
+    Route::post("/profile/change-password", [AuthController::class, "change_password"])->name("change_password");
 });
 
 

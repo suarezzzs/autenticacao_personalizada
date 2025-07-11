@@ -10,10 +10,15 @@ class User extends Authenticable
 
     use SoftDeletes;
 
+
     // atributes that are hidden for serialization
 
     protected $hidden = [
         'password',
         'token'
     ];
+
+
+
+
 }

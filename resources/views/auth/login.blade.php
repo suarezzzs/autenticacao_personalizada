@@ -30,9 +30,9 @@
                                 <div class="mb-3">
                                     <a href="{{ route("register") }}">Não tenho conta de usuário</a>
                                 </div>
-                                {{-- <div>
-                                    <a href="#">Esqueci a minha senha</a>
-                                </div> --}}
+                                <div>
+                                    <a href="{{ route("forgot_password") }}">Esqueci a minha senha</a>
+                                </div>
                             </div>
                             <div class="col text-end align-self-center">
                                 <button type="submit" class="btn btn-secondary px-5">ENTRAR</button>
@@ -46,10 +46,18 @@
                             {{ session("invalid_login") }}
                         </div>
                     @endif
-{{--
-                    <div class="alert alert-danger text-center mt-3">
-                        [mensagem de erro]
-                    </div> --}}
+
+                    @if(session("success"))
+                        <p class="mt-3 alert alert-success text-center p-2">
+                            Senha redefinida com sucesso
+                        </p>
+                    @endif
+
+                    @if(session("account_deleted"))
+                        <p class="mt-3 alert alert-success text-center p-2">
+                            Conta de usuário deletada com sucesso.
+                        </p>
+                    @endif
 
                 </div>
             </div>
